@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, Soda!</string>
+    <string name="app_name">Soda</string>
+<string name="explain">Please choose a soda to vend:</string>
+<string name="Logout">Logout</string>
+<string name="Login">Login</string>
+<string name="username">Username</string>
+<string name="password">Password</string>
+<string name="buySodaTitle">Working...</string>
+<string name="buySodaMessage">Purchasing soda...</string>
+<string name="ButtonBuy">Vend</string>
+</resources>

@@ -1,0 +1,12 @@
+This is an android app that allows you to order sodas from the internet-enabled soda machine
+owned and maintained by the S&T ACM chapter. It's kinda...err...really ugly now, and doesn't work.
+
+Contributing: Email me before you just push stuff to the repo. nmjxv3@mst.edu
+
+License: I think this'll be GPL, but not sure yet. 
+
+Todo:
+Prettification
+Do REST calls
+Persist username/passowrd? between runs
+General error checkng might not be bad either
