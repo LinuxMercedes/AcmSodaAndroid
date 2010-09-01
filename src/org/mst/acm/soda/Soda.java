@@ -15,72 +15,85 @@ import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.GridView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /**
  * Soda activity
+ * 
  * @author nathan
  * 
- * Implements most of the functionality of the soda order machine.
+ *         Implements most of the functionality of the soda order machine.
  */
 public class Soda extends Activity implements iSodaClick
 {
-	//Constants for communicating with Login
+	// Constants for communicating with Login
 	public static final String TOKEN = "token";
 	public static final int LOGIN = 1;
 
-	//List of sodas to vend
+	// List of sodas to vend
 	private GridView sodaGrid;
 	private ArrayList<SodaCan> sodas = new ArrayList<SodaCan>();
 	private SodaCanAdapter sodaAdapter;
-	
+
 	private Button logoutButton;
 
-	//Asynctasks. Variables created to let us cancel stuff in onDestroy()
+	private TextView balanceText;
+
+	// Asynctasks. Variables created to let us cancel stuff in onDestroy()
 	private GetSodasTask getSodas;
 	private BuySodaTask buySoda;
 	private LogoutTask logoutTask;
-	
-	private static final boolean STUB = true; //For testing purpoes only...removes check for token validity.
+
+	private static final boolean STUB = true; // For testing purpoes
+																						// only...removes check for token
+																						// validity.
 	private String token;
-	private Intent loginIntent = new Intent(this, Login.class);
-	
-	private enum taskResult {SUCCESS, FAIL, AUTH_FAIL};
+	private Intent loginIntent;
+
+	private enum taskResult
+	{
+		SUCCESS, FAIL, AUTH_FAIL
+	};
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		
+
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
 		setContentView(R.layout.main);
-		
-		//Need to log in
+
+		// Need to log in
+		loginIntent = new Intent(this, Login.class);
 		startActivityForResult(loginIntent, LOGIN);
-		
-		//Wire up the listadapter to the soda gridview
+
+		balanceText = (TextView) findViewById(R.id.TextViewBalance);
+
+		// Wire up the listadapter to the soda gridview
 		sodaGrid = (GridView) findViewById(R.id.gridViewSodas);
 		sodaAdapter = new SodaCanAdapter(this, R.layout.soda_can, sodas, this);
 		sodaGrid.setAdapter(sodaAdapter);
-		
-		//logout button listener
+
+		// logout button listener
 		logoutButton = (Button) findViewById(R.id.ButtonLogout);
-		logoutButton.setOnClickListener(new OnClickListener(){
+		logoutButton.setOnClickListener(new OnClickListener()
+		{
 
 			public void onClick(View v)
 			{
 				logoutTask = (LogoutTask) new LogoutTask().execute();
 			}
-			
+
 		});
 
 	}
 
 	/**
-	 * onResume() is called every time the activity comes to the front.
-	 * Here we refresh the soda list, mostly for the fun of it.
+	 * onResume() is called every time the activity comes to the front. Here we
+	 * refresh the soda list, mostly for the fun of it.
 	 */
 	@Override
 	public void onResume()
@@ -90,8 +103,8 @@ public class Soda extends Activity implements iSodaClick
 	}
 
 	/**
-	 * onDestroy() is called before the activity is destroyed.
-	 * Here we cancel AsyncTasks to prevent null pointer references.
+	 * onDestroy() is called before the activity is destroyed. Here we cancel
+	 * AsyncTasks to prevent null pointer references.
 	 */
 	@Override
 	public void onDestroy()
@@ -105,12 +118,12 @@ public class Soda extends Activity implements iSodaClick
 		{
 			buySoda.cancel(true);
 		}
-		
-		if(logoutTask != null)
+
+		if (logoutTask != null)
 		{
 			logoutTask.cancel(true);
 		}
-		
+
 		super.onDestroy();
 	}
 
@@ -120,34 +133,38 @@ public class Soda extends Activity implements iSodaClick
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
-		switch (requestCode){
-			case LOGIN: //Sanity check.
-				if (resultCode == Activity.RESULT_OK) {
+		switch (requestCode)
+		{
+			case LOGIN: // Sanity check.
+				if (resultCode == Activity.RESULT_OK)
+				{
 					token = data.getStringExtra(TOKEN);
 				}
 				break;
 		}
 	}
-	
+
 	/**
-	 * Called from the onClickListeners set in SodaCanAdapter. 
-	 * Lets us move all the business logic here instead of inside an adapter.
+	 * Called from the onClickListeners set in SodaCanAdapter. Lets us move all
+	 * the business logic here instead of inside an adapter.
 	 */
-	public void sodaClick(Context ctx, int position){
-		buySoda = (BuySodaTask) new BuySodaTask(ctx)
-		.execute(sodas.get(position));
+	public void sodaClick(Context ctx, int position)
+	{
+		buySoda = (BuySodaTask) new BuySodaTask(ctx).execute(sodas.get(position));
 	}
-	
+
 	/**
 	 * AsyncTask to get sodas
-	 * @author nathan
-	 * Gets sodas via REST request and repopulates the list adapter.
+	 * 
+	 * @author nathan Gets sodas via REST request and repopulates the list
+	 *         adapter.
 	 */
 	private class GetSodasTask extends AsyncTask<Void, Void, Void>
 	{
-		//Created to prevent race conditions caused by modifying the data of the 
-		//GridView on a different thread.
+		// Created to prevent race conditions caused by modifying the data of the
+		// GridView on a different thread.
 		private ArrayList<SodaCan> temp = new ArrayList<SodaCan>();
+		private long balance;
 
 		@Override
 		protected void onPreExecute()
@@ -158,30 +175,33 @@ public class Soda extends Activity implements iSodaClick
 		@Override
 		protected Void doInBackground(Void... arg0)
 		{
-			temp.add(new SodaCan("Coke", 5));
-			temp.add(new SodaCan("DP", 2));
-			temp.add(new SodaCan("Crush", 8));
-			temp.add(new SodaCan("Mountain Holler Radical Citrus Thirst Blaster",
+			temp.add(new SodaCan("Coke", 50, 5));
+			temp.add(new SodaCan("DP", 50, 2));
+			temp.add(new SodaCan("Crush", 25, 8));
+			temp.add(new SodaCan("Mountain Holler Radical Citrus Thirst Blaster", 25,
 					9001));
+			balance = 150;
 			return null;
 		}
 
 		@Override
 		protected void onPostExecute(Void v)
 		{
-			//keeps sodas pointed at the same spot in memory so the adapter is happy.
+			// keeps sodas pointed at the same spot in memory so the adapter is happy.
 			sodas.clear();
 			sodas.addAll(temp);
 			sodaAdapter.notifyDataSetInvalidated();
-			
+
+			balanceText.setText(String.valueOf(balance));
+
 			setProgressBarIndeterminateVisibility(false);
 		}
 	}
 
 	/**
 	 * AsyncTask to buy sodas
-	 * @author nathan
-	 * Uses a rest request to vend a particular soda.
+	 * 
+	 * @author nathan Uses a rest request to vend a particular soda.
 	 */
 	private class BuySodaTask extends AsyncTask<SodaCan, Void, taskResult>
 	{
@@ -203,16 +223,15 @@ public class Soda extends Activity implements iSodaClick
 		@Override
 		protected taskResult doInBackground(SodaCan... params)
 		{
-			//if not logged in, we bail out.
-			if(token == null && !STUB)
+			// if not logged in, we bail out.
+			if (token == null && !STUB)
 			{
 				return taskResult.AUTH_FAIL;
 			}
-			
-			SodaCan can = params[0]; //sanity check
-			
-			
-			Log.d("Soda", can.name()+can.depth());
+
+			SodaCan can = params[0]; // sanity check
+
+			Log.d("Soda", can.name() + can.depth());
 			return taskResult.SUCCESS;
 		}
 
@@ -235,10 +254,11 @@ public class Soda extends Activity implements iSodaClick
 
 	/**
 	 * AsyncTask to log user out
-	 * @author nathan
-	 * TODO: implement!
+	 * 
+	 * @author nathan TODO: implement!
 	 */
-	private class LogoutTask extends AsyncTask<Void, Void, Void>{
+	private class LogoutTask extends AsyncTask<Void, Void, Void>
+	{
 
 		@Override
 		protected Void doInBackground(Void... arg0)
@@ -246,12 +266,13 @@ public class Soda extends Activity implements iSodaClick
 			// TODO logout rest request
 			return null;
 		}
-		
+
 	}
-	
+
 	/**
 	 * Class to create a spinning progress dialog
-	 * @param context 
+	 * 
+	 * @param context
 	 * @param message
 	 * @return
 	 */
@@ -266,6 +287,7 @@ public class Soda extends Activity implements iSodaClick
 
 	/**
 	 * Class to create an error dialog
+	 * 
 	 * @param context
 	 * @param message
 	 * @return

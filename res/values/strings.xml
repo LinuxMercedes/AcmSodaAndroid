@@ -10,4 +10,5 @@
 <string name="buySodaTitle">Working...</string>
 <string name="buySodaMessage">Purchasing soda...</string>
 <string name="ButtonBuy">Vend</string>
+<string name="balance">Balance:</string>
 </resources>

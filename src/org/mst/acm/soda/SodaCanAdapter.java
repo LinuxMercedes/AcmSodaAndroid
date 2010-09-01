@@ -41,8 +41,8 @@ public class SodaCanAdapter extends ArrayAdapter<SodaCan>
 		//Sets the text for the depth and name
 		((TextView) convertView.findViewById(R.id.TextViewName)).setText(getItem(
 				position).name());
-		((TextView) convertView.findViewById(R.id.TextViewDepth)).setText(String
-				.valueOf(getItem(position).depth()));
+		((TextView) convertView.findViewById(R.id.TextViewCost)).setText(String
+				.valueOf(getItem(position).price()));
 		
 		//Sets the button enabled/disabled and the onclicklistener
 		Button b;
